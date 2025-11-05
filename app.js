@@ -155,7 +155,8 @@ function saveEdit() {
 
     const partsString = partsInput.value.trim();
     if (!partsString) {
-        alert('Please enter at least one part');
+        partsInput.style.borderColor = '#e74c3c';
+        partsInput.focus();
         return;
     }
 
@@ -163,9 +164,12 @@ function saveEdit() {
     const newParts = partsString.split(',').map(part => part.trim()).filter(part => part);
 
     if (newParts.length === 0) {
-        alert('Please enter valid parts');
+        partsInput.style.borderColor = '#e74c3c';
+        partsInput.focus();
         return;
     }
+
+    partsInput.style.borderColor = '';
 
     // Update the data
     kanjiData[currentEditingComponent] = newParts;
@@ -236,7 +240,7 @@ async function submitPullRequest() {
         const repo = 'kanji-decomposition';
         const baseURL = `https://api.github.com/repos/${owner}/${repo}`;
         const headers = {
-            'Authorization': `token ${token}`,
+            'Authorization': `Bearer ${token}`,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json'
         };
@@ -287,7 +291,7 @@ async function submitPullRequest() {
             headers,
             body: JSON.stringify({
                 message: `Update kanji-parts.json: ${title}`,
-                content: btoa(unescape(encodeURIComponent(jsonContent))),
+                content: btoa(String.fromCharCode(...new TextEncoder().encode(jsonContent))),
                 sha: fileSha,
                 branch: branchName
             })

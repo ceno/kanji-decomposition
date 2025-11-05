@@ -5,6 +5,10 @@ let modifiedData = {};
 let currentPage = 1;
 const itemsPerPage = 10;
 
+// Configuration - can be modified for different repositories
+const REPO_OWNER = 'ceno';
+const REPO_NAME = 'kanji-decomposition';
+
 // DOM elements
 const tableBody = document.getElementById('tableBody');
 const pageInfo = document.getElementById('pageInfo');
@@ -236,9 +240,7 @@ async function submitPullRequest() {
         const jsonContent = JSON.stringify(sortedData, null, 2) + '\n';
 
         // GitHub API configuration
-        const owner = 'ceno';
-        const repo = 'kanji-decomposition';
-        const baseURL = `https://api.github.com/repos/${owner}/${repo}`;
+        const baseURL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
         const headers = {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/vnd.github.v3+json',
@@ -319,11 +321,14 @@ async function submitPullRequest() {
         }
 
         const prData = await prResponse.json();
+        const successMessage = document.createElement('span');
+        successMessage.textContent = 'Pull request created successfully! ';
         const prLink = document.createElement('a');
         prLink.href = prData.html_url;
         prLink.target = '_blank';
         prLink.textContent = `View PR #${prData.number}`;
-        showPRStatus(`Pull request created successfully! ${prLink.outerHTML}`, 'success');
+        successMessage.appendChild(prLink);
+        showPRStatus(successMessage, 'success');
 
         // Clear modifications after successful PR
         setTimeout(() => {
@@ -344,7 +349,12 @@ async function submitPullRequest() {
 
 // Show PR status message
 function showPRStatus(message, type) {
-    prStatus.innerHTML = message;
+    prStatus.textContent = '';
+    if (typeof message === 'string') {
+        prStatus.textContent = message;
+    } else {
+        prStatus.appendChild(message);
+    }
     prStatus.className = `status-message ${type}`;
 }
 

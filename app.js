@@ -226,7 +226,7 @@ function updateChangesCount() {
 // Open PR modal
 function openPRModal() {
     if (!accessToken) {
-        showPRStatus('Please login with GitHub first to submit a pull request.', 'error');
+        alert('Please login with GitHub first to submit a pull request.');
         return;
     }
     prStatus.textContent = '';

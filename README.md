@@ -15,15 +15,16 @@ Visit the GitHub Pages site: [https://ceno.github.io/kanji-decomposition/](https
 
 ### How to Edit
 
-1. **Browse the table**: View all kanji components and their parts
-2. **Click Edit**: Click the "Edit" button for any component you want to modify
-3. **Modify parts**: Enter the new parts as comma-separated values (e.g., `豸, 皃, 人`)
-4. **Save changes**: Click "Save" to apply your changes
-5. **Submit PR**: After making all desired changes, click "Submit Pull Request"
-6. **Provide details**: 
-   - Enter a title and description for your changes
-   - Provide a GitHub Personal Access Token with `repo` scope ([create one here](https://github.com/settings/tokens/new?scopes=repo&description=Kanji%20Decomposition%20Editor))
-7. **Create PR**: Click "Create Pull Request" to submit your changes
+1. **Login**: Click "Login with GitHub" to authenticate (no Personal Access Token needed!)
+2. **Browse the table**: View all kanji components and their parts
+3. **Click Edit**: Click the "Edit" button for any component you want to modify
+4. **Modify parts**: Enter the new parts as comma-separated values (e.g., `豸, 皃, 人`)
+5. **Save changes**: Click "Save" to apply your changes
+6. **Submit PR**: After making all desired changes, click "Submit Pull Request"
+7. **Provide details**: Enter a title and description for your changes
+8. **Create PR**: Click "Create Pull Request" to submit your changes
+
+**Note**: The GitHub authentication requires a backend service to securely exchange tokens. See [OAUTH_SETUP.md](OAUTH_SETUP.md) for deployment instructions.
 
 ## Data Format
 

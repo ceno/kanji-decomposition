@@ -37,6 +37,28 @@ header h1 {
     font-size: 1.1rem;
 }
 
+.auth-section {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 20px;
+    background-color: #ecf0f1;
+    border-radius: 5px;
+}
+
+.user-info span {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
 .controls {
     display: flex;
     justify-content: space-between;

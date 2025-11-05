@@ -1,0 +1,17 @@
+# Environment variables (contains secrets)
+.env
+.env.local
+
+# Node modules (if adding any build tools)
+node_modules/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/

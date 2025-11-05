@@ -277,8 +277,8 @@ async function submitPullRequest() {
             throw new Error('Failed to create branch');
         }
 
-        // Get the current file SHA
-        const fileResponse = await fetch(`${baseURL}/contents/kanji-parts.json?ref=${branchName}`, { headers });
+        // Get the current file SHA from the default branch
+        const fileResponse = await fetch(`${baseURL}/contents/kanji-parts.json?ref=${defaultBranch}`, { headers });
         let fileSha = null;
         if (fileResponse.ok) {
             const fileData = await fileResponse.json();
@@ -291,7 +291,7 @@ async function submitPullRequest() {
             headers,
             body: JSON.stringify({
                 message: `Update kanji-parts.json: ${title}`,
-                content: btoa(String.fromCharCode(...new TextEncoder().encode(jsonContent))),
+                content: btoa(encodeURIComponent(jsonContent).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16)))),
                 sha: fileSha,
                 branch: branchName
             })
@@ -319,7 +319,11 @@ async function submitPullRequest() {
         }
 
         const prData = await prResponse.json();
-        showPRStatus(`Pull request created successfully! <a href="${prData.html_url}" target="_blank">View PR #${prData.number}</a>`, 'success');
+        const prLink = document.createElement('a');
+        prLink.href = prData.html_url;
+        prLink.target = '_blank';
+        prLink.textContent = `View PR #${prData.number}`;
+        showPRStatus(`Pull request created successfully! ${prLink.outerHTML}`, 'success');
 
         // Clear modifications after successful PR
         setTimeout(() => {

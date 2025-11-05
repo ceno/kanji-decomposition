@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanji Decomposition Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Kanji Decomposition Manager</h1>
+            <p class="subtitle">View and edit kanji component decompositions</p>
+        </header>
+
+        <main>
+            <div class="controls">
+                <div class="pagination-info">
+                    <span id="pageInfo">Page 1 of 1</span>
+                    <span id="itemInfo">Showing 0-0 of 0 items</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="prevBtn" class="btn btn-secondary">Previous</button>
+                    <button id="nextBtn" class="btn btn-secondary">Next</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="kanjiTable">
+                    <thead>
+                        <tr>
+                            <th>COMPONENT</th>
+                            <th>PARTS</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Table rows will be generated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="editModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Edit Parts for <span id="editComponent"></span></h2>
+                        <button class="close" id="closeModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="partsInput">Parts (comma-separated):</label>
+                        <input type="text" id="partsInput" placeholder="e.g., 豸, 皃">
+                        <p class="help-text">Enter kanji parts separated by commas</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                        <button class="btn btn-primary" id="saveBtn">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-section">
+                <h3>Submit Changes as Pull Request</h3>
+                <p>After making edits, you can submit your changes as a pull request to the repository.</p>
+                <button id="submitPRBtn" class="btn btn-primary btn-large" disabled>Submit Pull Request</button>
+                <p id="changesCount" class="changes-info">No changes made yet</p>
+            </div>
+
+            <div id="prModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Submit Pull Request</h2>
+                        <button class="close" id="closePRModal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="prTitle">Pull Request Title:</label>
+                        <input type="text" id="prTitle" placeholder="e.g., Update kanji parts" value="Update kanji-parts.json">
+                        
+                        <label for="prDescription">Description:</label>
+                        <textarea id="prDescription" rows="4" placeholder="Describe your changes...">Updated kanji part decompositions</textarea>
+                        
+                        <label for="githubToken">GitHub Personal Access Token:</label>
+                        <input type="password" id="githubToken" placeholder="ghp_...">
+                        <p class="help-text">
+                            You need a GitHub Personal Access Token with 'repo' scope to create a pull request.
+                            <a href="https://github.com/settings/tokens/new?scopes=repo&description=Kanji%20Decomposition%20Editor" target="_blank">Create one here</a>
+                        </p>
+                        
+                        <div id="prStatus" class="status-message"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="cancelPRBtn">Cancel</button>
+                        <button class="btn btn-primary" id="submitPRActionBtn">Create Pull Request</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Kanji Decomposition Manager | <a href="https://github.com/ceno/kanji-decomposition" target="_blank">View on GitHub</a></p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

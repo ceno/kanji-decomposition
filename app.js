@@ -4,10 +4,19 @@ let originalData = {};
 let modifiedData = {};
 let currentPage = 1;
 const itemsPerPage = 10;
+let accessToken = null;
+let currentUser = null;
 
 // Configuration - can be modified for different repositories
 const REPO_OWNER = 'ceno';
 const REPO_NAME = 'kanji-decomposition';
+
+// GitHub OAuth configuration
+// Note: The Client ID is public information and safe to expose in the frontend
+// Configure this for your deployment by setting it in your build/deployment settings
+const GITHUB_CLIENT_ID = window.GITHUB_CLIENT_ID || 'Ov23liibHbYtMy5FxJVj';
+const OAUTH_REDIRECT_URI = window.location.origin + window.location.pathname;
+const OAUTH_CALLBACK_API = window.location.origin + '/api/oauth-callback';
 
 // DOM elements
 const tableBody = document.getElementById('tableBody');
@@ -28,12 +37,22 @@ const changesCount = document.getElementById('changesCount');
 const cancelPRBtn = document.getElementById('cancelPRBtn');
 const submitPRActionBtn = document.getElementById('submitPRActionBtn');
 const prStatus = document.getElementById('prStatus');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const userInfo = document.getElementById('userInfo');
+const username = document.getElementById('username');
 
 let currentEditingComponent = null;
 
 // Initialize the application
 async function init() {
     try {
+        // Check for OAuth callback
+        handleOAuthCallback();
+        
+        // Check if user is already authenticated
+        checkAuthStatus();
+        
         const response = await fetch('kanji-parts.json');
         kanjiData = await response.json();
         originalData = JSON.parse(JSON.stringify(kanjiData));
@@ -69,6 +88,8 @@ function setupEventListeners() {
     cancelPRBtn.addEventListener('click', closePRModal);
     submitPRBtn.addEventListener('click', openPRModal);
     submitPRActionBtn.addEventListener('click', submitPullRequest);
+    loginBtn.addEventListener('click', initiateGitHubLogin);
+    logoutBtn.addEventListener('click', logout);
 
     // Close modal when clicking outside
     window.addEventListener('click', (e) => {
@@ -206,6 +227,10 @@ function updateChangesCount() {
 
 // Open PR modal
 function openPRModal() {
+    if (!accessToken) {
+        alert('Please login with GitHub first to submit a pull request.');
+        return;
+    }
     prStatus.textContent = '';
     prStatus.className = 'status-message';
     prModal.classList.add('active');
@@ -220,10 +245,14 @@ function closePRModal() {
 async function submitPullRequest() {
     const title = document.getElementById('prTitle').value.trim();
     const description = document.getElementById('prDescription').value.trim();
-    const token = document.getElementById('githubToken').value.trim();
 
-    if (!title || !description || !token) {
+    if (!title || !description) {
         showPRStatus('Please fill in all fields', 'error');
+        return;
+    }
+
+    if (!accessToken) {
+        showPRStatus('Please login with GitHub first', 'error');
         return;
     }
 
@@ -242,7 +271,7 @@ async function submitPullRequest() {
         // GitHub API configuration
         const baseURL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
         const headers = {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json'
         };
@@ -336,7 +365,6 @@ async function submitPullRequest() {
             kanjiData = JSON.parse(JSON.stringify(originalData));
             renderTable();
             closePRModal();
-            document.getElementById('githubToken').value = '';
         }, 3000);
 
     } catch (error) {
@@ -364,6 +392,129 @@ function showError(message) {
     errorDiv.className = 'status-message error';
     errorDiv.textContent = message;
     document.querySelector('.container').insertBefore(errorDiv, document.querySelector('main'));
+}
+
+// GitHub OAuth functions
+function initiateGitHubLogin() {
+    // Generate a random state for CSRF protection
+    const state = generateRandomState();
+    sessionStorage.setItem('oauth_state', state);
+    
+    // Redirect to GitHub OAuth authorization
+    const authUrl = `https://github.com/login/oauth/authorize?` +
+        `client_id=${GITHUB_CLIENT_ID}&` +
+        `redirect_uri=${encodeURIComponent(OAUTH_REDIRECT_URI)}&` +
+        `scope=public_repo&` +
+        `state=${state}`;
+    
+    window.location.href = authUrl;
+}
+
+function generateRandomState() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+function handleOAuthCallback() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    const storedState = sessionStorage.getItem('oauth_state');
+    
+    if (code && state && state === storedState) {
+        // Show success message and guide user
+        showOAuthSuccessModal(code);
+        
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        sessionStorage.removeItem('oauth_state');
+    }
+}
+
+async function showOAuthSuccessModal(code) {
+    // Exchange code for token using our serverless function
+    try {
+        const response = await fetch(`${OAUTH_CALLBACK_API}?code=${code}`);
+        const data = await response.json();
+        
+        if (data.token) {
+            accessToken = data.token;
+            sessionStorage.setItem('github_token', accessToken);
+            await fetchUserInfo();
+            updateAuthUI();
+        } else {
+            throw new Error(data.error || 'Failed to get access token');
+        }
+    } catch (error) {
+        console.error('Error exchanging code:', error);
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'oauthErrorModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Authentication Error</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="status-message error">
+                        <strong>Failed to complete authentication:</strong> ${error.message}
+                        <p style="margin-top: 10px;">Make sure the OAuth callback API is properly deployed and configured with your GitHub OAuth App credentials.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="closeOAuthErrorModal">Close</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        document.getElementById('closeOAuthErrorModal').addEventListener('click', () => {
+            modal.remove();
+        });
+    }
+}
+
+async function fetchUserInfo() {
+    try {
+        const response = await fetch('https://api.github.com/user', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (response.ok) {
+            currentUser = await response.json();
+        }
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+    }
+}
+
+function checkAuthStatus() {
+    const storedToken = sessionStorage.getItem('github_token');
+    if (storedToken) {
+        accessToken = storedToken;
+        fetchUserInfo().then(() => updateAuthUI());
+    }
+}
+
+function updateAuthUI() {
+    if (accessToken && currentUser) {
+        loginBtn.style.display = 'none';
+        userInfo.style.display = 'flex';
+        username.textContent = currentUser.login;
+    } else {
+        loginBtn.style.display = 'inline-block';
+        userInfo.style.display = 'none';
+    }
+}
+
+function logout() {
+    accessToken = null;
+    currentUser = null;
+    sessionStorage.removeItem('github_token');
+    sessionStorage.removeItem('oauth_state');
+    updateAuthUI();
 }
 
 // Initialize the app when DOM is loaded

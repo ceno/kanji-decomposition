@@ -31,6 +31,7 @@ The application uses GitHub OAuth to authenticate users. This requires:
 5. In the project settings, add environment variables:
    - `GITHUB_CLIENT_ID`: Your OAuth App Client ID
    - `GITHUB_CLIENT_SECRET`: Your OAuth App Client Secret
+   - `ALLOWED_ORIGIN` (optional): Your custom domain if not using GitHub Pages
 6. Deploy!
 
 ### Step 3: Update Client ID in Code
@@ -56,6 +57,7 @@ The application uses GitHub OAuth to authenticate users. This requires:
 6. Add environment variables in Site settings → Build & deploy → Environment:
    - `GITHUB_CLIENT_ID`: Your OAuth App Client ID
    - `GITHUB_CLIENT_SECRET`: Your OAuth App Client Secret
+   - `ALLOWED_ORIGIN` (optional): Your custom domain if not using the default Netlify domain
 7. Deploy!
 
 ### Step 3: Update Functions
@@ -95,6 +97,9 @@ Once deployed:
 - Always use environment variables for secrets
 - The serverless function keeps your client secret secure on the backend
 - Access tokens are stored in the browser's sessionStorage and are cleared when the session ends
+- CORS is configured to allow specific origins only - update the allowed origins list if you use a custom domain
+- The OAuth state parameter prevents CSRF attacks during the authentication flow
+- OAuth Client ID is public information and safe to expose (similar to API keys for client-side apps)
 
 ## Troubleshooting
 

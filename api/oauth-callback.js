@@ -2,8 +2,19 @@
 // Deploy this to Vercel, Netlify, or similar platform
 
 module.exports = async (req, res) => {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Enable CORS - restrict to your deployed domain for production
+    // For local development and GitHub Pages, allow specific origins
+    const allowedOrigins = [
+        'http://localhost:8080',
+        'http://localhost:3000',
+        'https://ceno.github.io',
+        process.env.ALLOWED_ORIGIN // Custom origin from environment variable
+    ].filter(Boolean);
+    
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     

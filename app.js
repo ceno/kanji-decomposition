@@ -12,7 +12,9 @@ const REPO_OWNER = 'ceno';
 const REPO_NAME = 'kanji-decomposition';
 
 // GitHub OAuth configuration
-const GITHUB_CLIENT_ID = 'Ov23liibHbYtMy5FxJVj';
+// Note: The Client ID is public information and safe to expose in the frontend
+// Configure this for your deployment by setting it in your build/deployment settings
+const GITHUB_CLIENT_ID = window.GITHUB_CLIENT_ID || 'Ov23liibHbYtMy5FxJVj';
 const OAUTH_REDIRECT_URI = window.location.origin + window.location.pathname;
 const OAUTH_CALLBACK_API = window.location.origin + '/api/oauth-callback';
 
